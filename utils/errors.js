@@ -56,16 +56,15 @@ function handleMongooseError(originalErr) {
 
 // Express error handling middleware
 function errorHandler(err, req, res) {
-  // Normalize Mongoose/Mongo errors
-  if (err && (err.name === 'ValidationError' || err.name === 'CastError' || err.code === 11000)) {
-    let normalizedError = handleMongooseError(err);
-    err = normalizedError;
-  }
+  // Normalize Mongoose/Mongo errors without reassigning the parameter
+  const normalized = (err && (err.name === 'ValidationError' || err.name === 'CastError' || err.code === 11000))
+    ? handleMongooseError(err)
+    : err;
 
   // Default to 500 if statusCode not set
-  const status = (err && err.statusCode) || 500;
-  const safeMessage = status === 500 ? 'An error has occurred on the server.' : (err && err.message) || 'Error';
-  res.status(status).json({ message: safeMessage });
+  const status = (normalized && normalized.statusCode) || 500;
+  const safeMessage = status === 500 ? 'An error has occurred on the server.' : (normalized && normalized.message) || 'Error';
+  return res.status(status).json({ message: safeMessage });
 }
 
 // Export all error classes and middleware
