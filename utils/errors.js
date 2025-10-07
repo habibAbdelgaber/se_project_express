@@ -1,6 +1,7 @@
 // utils/errors.js
 // Custom error classes and centralized error handling middleware for Express
-class CustomError extends Error {
+// (single AppError class below + factory helpers)
+class AppError extends Error {
   constructor(message, statusCode) {
     super(message);
     this.statusCode = statusCode;
@@ -9,66 +10,52 @@ class CustomError extends Error {
   }
 }
 
-// Specific error classes
-class BadRequestError extends CustomError {
-  constructor(message = 'Bad Request') {
-    super(message, 400);
-  }
+// Factory helpers to create typed errors (keeps only one class in file)
+function BadRequestError(message = 'Bad Request') {
+  return new AppError(message, 400);
 }
 
-// 404 Not Found error
-class NotFoundError extends CustomError {
-  constructor(message = 'Not Found') {
-    super(message, 404);
-  }
+function NotFoundError(message = 'Not Found') {
+  return new AppError(message, 404);
 }
 
-// 409 Conflict error
-class ConflictError extends CustomError {
-  constructor(message = 'Conflict') {
-    super(message, 409);
-  }
+function ConflictError(message = 'Conflict') {
+  return new AppError(message, 409);
 }
 
-// 401 Unauthorized error
-class UnauthorizedError extends CustomError {
-  constructor(message = 'Unauthorized') {
-    super(message, 401);
-  }
+function UnauthorizedError(message = 'Unauthorized') {
+  return new AppError(message, 401);
 }
 
-// 403 Forbidden error
-class ForbiddenError extends CustomError {
-  constructor(message = 'Forbidden') {
-    super(message, 403);
-  }
+function ForbiddenError(message = 'Forbidden') {
+  return new AppError(message, 403);
 }
 
 // Convert common Mongoose/Mongo errors into our custom errors
-function handleMongooseError(err) {
+function handleMongooseError(originalErr) {
   // Duplicate key (unique) error
-  if (err && err.code === 11000) {
-    const keys = Object.keys(err.keyValue || {}).join(', ');
-    return new ConflictError(`Duplicate value for field(s): ${keys}`);
+  if (originalErr && originalErr.code === 11000) {
+    const keys = Object.keys(originalErr.keyValue || {}).join(', ');
+    return ConflictError(`Duplicate value for field(s): ${keys}`);
   }
 
   // Validation errors
-  if (err && err.name === 'ValidationError') {
+  if (originalErr && originalErr.name === 'ValidationError') {
     // Return a generic message to match sprint requirements
-    return new BadRequestError('Invalid data');
+    return BadRequestError('Invalid data');
   }
 
   // CastError (invalid ObjectId etc.)
-  if (err && err.name === 'CastError') {
-    return new BadRequestError('Invalid ID');
+  if (originalErr && originalErr.name === 'CastError') {
+    return BadRequestError('Invalid ID');
   }
 
   // Fallback
-  return new BadRequestError(err.message || 'Bad Request');
+  return BadRequestError(originalErr && originalErr.message ? originalErr.message : 'Bad Request');
 }
 
 // Express error handling middleware
-function errorHandler(err, req, res, next) {
+function errorHandler(err, req, res) {
   // Normalize Mongoose/Mongo errors
   if (err && (err.name === 'ValidationError' || err.name === 'CastError' || err.code === 11000)) {
     err = handleMongooseError(err);
@@ -82,7 +69,7 @@ function errorHandler(err, req, res, next) {
 
 // Export all error classes and middleware
 module.exports = {
-  CustomError,
+  AppError,
   BadRequestError,
   NotFoundError,
   ConflictError,
