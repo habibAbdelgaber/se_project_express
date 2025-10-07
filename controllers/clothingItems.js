@@ -1,11 +1,12 @@
 const { ClothingItem } = require('../models/clothingItem');
 const { NotFoundError } = require('../utils/errors');
 
+
 // GET: items - return all items
 const getClothingItems = async (req, res, next) => {
   try {
     const items = await ClothingItem.find();
-    res.json(items);
+    return res.json(items);
   } catch (error) {
     next(error);
   }
@@ -15,7 +16,7 @@ const getClothingItems = async (req, res, next) => {
 const getClothingItem = async (req, res, next) => {
   try {
     const item = await ClothingItem.findById(req.params.itemId).orFail(new NotFoundError('Item not found'));
-    res.json(item);
+    return res.json(item);
   } catch (error) {
     next(error);
   }
@@ -25,7 +26,7 @@ const getClothingItem = async (req, res, next) => {
 const getItemLikes = async (req, res, next) => {
   try {
     const item = await ClothingItem.findById(req.params.itemId).orFail(new NotFoundError('Item not found'));
-    res.json({ likes: item.likes || [] });
+    return res.json({ likes: item.likes || [] });
   } catch (error) {
     next(error);
   }
@@ -42,7 +43,7 @@ const createClothingItem = async (req, res, next) => {
   try {
     const newItem = new ClothingItem({ name, weather, imageUrl, owner });
     await newItem.save();
-    res.status(201).json(newItem);
+    return res.status(201).json(newItem);
   } catch (error) {
     next(error);
   }
@@ -60,7 +61,7 @@ const likeClothingItem = async (req, res, next) => {
       { $addToSet: { likes: userId } },
       { new: true }
     ).orFail(new NotFoundError('Item not found'));
-    res.json(updated);
+    return res.json(updated);
   } catch (error) {
     next(error);
   }
@@ -78,7 +79,7 @@ const unlikeClothingItem = async (req, res, next) => {
       { $pull: { likes: userId } },
       { new: true }
     ).orFail(new NotFoundError('Item not found'));
-    res.json(updated);
+    return res.json(updated);
   } catch (error) {
     next(error);
   }
@@ -90,7 +91,7 @@ const deleteClothingItem = async (req, res, next) => {
     // findByIdAndDelete doesn't support orFail(), so find then delete
     const item = await ClothingItem.findById(req.params.itemId).orFail(new NotFoundError('Item not found'));
     await item.deleteOne();
-    res.json(item);
+    return res.json(item);
   } catch (error) {
     next(error);
   }

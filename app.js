@@ -1,6 +1,5 @@
 const express = require('express');
 const mongoose = require('mongoose');
-const path = require('path');
 const { errorHandler } = require('./utils/errors');
 
 const app = express();
