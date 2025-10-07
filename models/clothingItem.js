@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 const validator = require('validator');
 
 // Initialize schema
-const Schema = mongoose.Schema;
+const { Schema } = mongoose;
 
 // Define user schema
 const UserSchema = new Schema({
@@ -28,8 +28,8 @@ const ClothingItemSchema = new Schema({
       }, message: props => `${props.value} is not a valid URL!`
     }
   },
-  owner: { type: schema.Types.ObjectId, ref: 'users', required: true },
-  likes: [{ type: schema.Types.ObjectId, ref: 'users', default: [] }],
+  owner: { type: Schema.Types.ObjectId, ref: 'users', required: true },
+  likes: [{ type: Schema.Types.ObjectId, ref: 'users', default: [] }],
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now }
 });

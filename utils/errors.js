@@ -58,7 +58,8 @@ function handleMongooseError(originalErr) {
 function errorHandler(err, req, res) {
   // Normalize Mongoose/Mongo errors
   if (err && (err.name === 'ValidationError' || err.name === 'CastError' || err.code === 11000)) {
-    err = handleMongooseError(err);
+    let normalizedError = handleMongooseError(err);
+    err = normalizedError;
   }
 
   // Default to 500 if statusCode not set
