@@ -15,6 +15,7 @@ mongoose.connect('mongodb://127.0.0.1:27017/wtwr', {
 
 // mount routers
 const usersRouter = require('./routes/users');
+
 const itemsRouter = require('./routes/clothingItems');
 app.use('/users', usersRouter);
 app.use('/items', itemsRouter);

@@ -5,7 +5,7 @@ const validator = require('validator');
 const schema = mongoose.Schema;
 
 // Define user schema
-const userSchema = new schema({
+const UserSchema = new schema({
   name: { type: String, required: true, unique: true, minlength: 2, maxlength: 30 },
   about: { type: String, maxlength: 200, default: '' },
   avatar: {
@@ -35,7 +35,7 @@ const clothingItemSchema = new schema({
 });
 
 // Export user model
-const User = mongoose.model('users', userSchema);
+const User = mongoose.model('users', UserSchema);
 
 // Export clothing item model
 const ClothingItem = mongoose.model('clothingItems', clothingItemSchema);

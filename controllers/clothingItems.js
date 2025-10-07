@@ -8,7 +8,7 @@ const getClothingItems = async (req, res, next) => {
     const items = await ClothingItem.find();
     return res.json(items);
   } catch (error) {
-    next(error);
+    return next(error);
   }
 };
 
@@ -18,7 +18,7 @@ const getClothingItem = async (req, res, next) => {
     const item = await ClothingItem.findById(req.params.itemId).orFail(new NotFoundError('Item not found'));
     return res.json(item);
   } catch (error) {
-    next(error);
+    return next(error);
   }
 };
 
@@ -28,7 +28,7 @@ const getItemLikes = async (req, res, next) => {
     const item = await ClothingItem.findById(req.params.itemId).orFail(new NotFoundError('Item not found'));
     return res.json({ likes: item.likes || [] });
   } catch (error) {
-    next(error);
+    return next(error);
   }
 };
 
@@ -45,11 +45,13 @@ const createClothingItem = async (req, res, next) => {
     await newItem.save();
     return res.status(201).json(newItem);
   } catch (error) {
-    next(error);
+    return next(error);
   }
 };
+
 // PUT: items/:itemId/likes — like an item
 const { BadRequestError } = require('../utils/errors');
+
 const likeClothingItem = async (req, res, next) => {
   try {
     const userId = (req.user && req.user._id) || req.body.userId;
@@ -63,7 +65,7 @@ const likeClothingItem = async (req, res, next) => {
     ).orFail(new NotFoundError('Item not found'));
     return res.json(updated);
   } catch (error) {
-    next(error);
+    return next(error);
   }
 };
 
@@ -81,7 +83,7 @@ const unlikeClothingItem = async (req, res, next) => {
     ).orFail(new NotFoundError('Item not found'));
     return res.json(updated);
   } catch (error) {
-    next(error);
+    return next(error);
   }
 };
 
@@ -93,7 +95,7 @@ const deleteClothingItem = async (req, res, next) => {
     await item.deleteOne();
     return res.json(item);
   } catch (error) {
-    next(error);
+    return next(error);
   }
 };
 
