@@ -55,7 +55,7 @@ function handleMongooseError(originalErr) {
 }
 
 // Express error handling middleware
-function errorHandler(err, req, res) {
+function errorHandler(err, req, res, next) {
   // Normalize Mongoose/Mongo errors without reassigning the parameter
   const normalized = (err && (err.name === 'ValidationError' || err.name === 'CastError' || err.code === 11000))
     ? handleMongooseError(err)
@@ -64,6 +64,8 @@ function errorHandler(err, req, res) {
   // Default to 500 if statusCode not set
   const status = (normalized && normalized.statusCode) || 500;
   const safeMessage = status === 500 ? 'An error has occurred on the server.' : (normalized && normalized.message) || 'Error';
+  // Ensure the response is JSON (some environments fall back to HTML error pages)
+  res.set('Content-Type', 'application/json');
   return res.status(status).json({ message: safeMessage });
 }
 

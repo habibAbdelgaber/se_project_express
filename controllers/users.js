@@ -1,7 +1,7 @@
 const { User } = require('../models/clothingItem');
-const { NotFoundError } = require('../utils/errors');
+const { NotFoundError, BadRequestError } = require('../utils/errors');
 
-// GET: users — return all users
+// GET: return all users
 const getUsers = async (req, res, next) => {
   try {
     const users = await User.find();
@@ -11,7 +11,7 @@ const getUsers = async (req, res, next) => {
   }
 };
 
-// GET: user by :userId — return a user by _id
+// GET: return a user by _id
 const getUser = async (req, res, next) => {
   try {
     const user = await User.findById(req.params.userId).orFail(new NotFoundError('User not found'));
@@ -21,17 +21,18 @@ const getUser = async (req, res, next) => {
   }
 };
 
-// POST: users - create a new user
+// POST: create a new user
 const createUser = async (req, res, next) => {
   const { name, avatar } = req.body;
-  if (!name || !avatar) {
-    return res.status(400).json({ message: 'Name and avatar are required' });
-  }
   try {
     const newUser = new User({ name, avatar });
     await newUser.save();
     return res.status(201).json(newUser);
   } catch (error) {
+    // Convert Mongoose validation/cast errors to 400
+    if (error && (error.name === 'ValidationError' || error.name === 'CastError')) {
+      return next(BadRequestError('Invalid data'));
+    }
     // If duplicate key (user already exists), return existing user with 200
     if (error && error.code === 11000) {
       try {

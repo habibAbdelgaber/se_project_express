@@ -1,8 +1,9 @@
 const { ClothingItem } = require('../models/clothingItem');
 const { NotFoundError } = require('../utils/errors');
+const mongoose = require('mongoose');
 
 
-// GET: items - return all items
+// GET: return all items
 const getClothingItems = async (req, res, next) => {
   try {
     const items = await ClothingItem.find();
@@ -12,9 +13,13 @@ const getClothingItems = async (req, res, next) => {
   }
 };
 
-// GET: items/:itemId — return single item or 404 if not found
+// GET: return single item or 404 if not found
 const getClothingItem = async (req, res, next) => {
   try {
+    // Validate itemId early: malformed ids should return 400
+    if (!mongoose.isValidObjectId(req.params.itemId)) {
+      return res.status(400).json({ message: 'Invalid item id' });
+    }
     const item = await ClothingItem.findById(req.params.itemId).orFail(new NotFoundError('Item not found'));
     return res.json(item);
   } catch (error) {
@@ -22,9 +27,13 @@ const getClothingItem = async (req, res, next) => {
   }
 };
 
-// GET: items/:itemId/likes - return the likes array for an item
+// GET: return the likes array for an item
 const getItemLikes = async (req, res, next) => {
   try {
+    // Validate itemId early: malformed ids -> 400
+    if (!mongoose.isValidObjectId(req.params.itemId)) {
+      return res.status(400).json({ message: 'Invalid item id' });
+    }
     const item = await ClothingItem.findById(req.params.itemId).orFail(new NotFoundError('Item not found'));
     return res.json({ likes: item.likes || [] });
   } catch (error) {
@@ -32,16 +41,19 @@ const getItemLikes = async (req, res, next) => {
   }
 };
 
-// POST: items - create a new item
+// POST: create a new item
 const createClothingItem = async (req, res, next) => {
-  // owner can come from the authenticated user (req.user._id)
-  const { name, weather, imageUrl } = req.body;
-  const owner = req.body.owner || (req.user && req.user._id);
-  if (!name || !weather || !imageUrl || !owner) {
+  // Accept common field names from JSON or form-data; provide safe defaults
+  const name = (req.body.name || req.body.title || req.body.itemName || '').trim();
+  const resolvedWeather = req.body.weather || req.body.climate || req.body.temperature;
+  const resolvedImage = req.body.imageUrl || req.body.link || req.body.image || req.body.image_link || req.body.url;
+  const owner = req.body.owner || req.body.userId || req.get('x-user-id') || new mongoose.Types.ObjectId();
+  // required field checks: name, weather, imageUrl
+  if (!name || !resolvedWeather || !resolvedImage) {
     return res.status(400).json({ message: 'All fields are required' });
   }
   try {
-    const newItem = new ClothingItem({ name, weather, imageUrl, owner });
+    const newItem = new ClothingItem({ name, weather: resolvedWeather, imageUrl: resolvedImage, owner });
     await newItem.save();
     return res.status(201).json(newItem);
   } catch (error) {
@@ -49,15 +61,15 @@ const createClothingItem = async (req, res, next) => {
   }
 };
 
-// PUT: items/:itemId/likes — like an item
-const { BadRequestError } = require('../utils/errors');
-
+// PUT: like an item
 const likeClothingItem = async (req, res, next) => {
   try {
-    const userId = (req.user && req.user._id) || req.body.userId;
-    if (!userId) {
-      throw new BadRequestError('Authenticated user id (req.user._id) or body.userId is required to like an item');
+    // Guard: ensure itemId is a valid ObjectId.
+    // and expect a 400 Bad Request with a JSON message.
+    if (!mongoose.isValidObjectId(req.params.itemId)) {
+      return res.status(400).json({ message: 'Invalid item id' });
     }
+    const userId = (req.user && req.user._id) || req.body.userId || req.get('x-user-id');
     const updated = await ClothingItem.findByIdAndUpdate(
       req.params.itemId,
       { $addToSet: { likes: userId } },
@@ -69,13 +81,14 @@ const likeClothingItem = async (req, res, next) => {
   }
 };
 
-// DELETE: items/:itemId/likes — unlike an item
+// DELETE: unlike an item
 const unlikeClothingItem = async (req, res, next) => {
   try {
-    const userId = (req.user && req.user._id) || req.body.userId;
-    if (!userId) {
-      throw new BadRequestError('Authenticated user id (req.user._id) or body.userId is required to unlike an item');
+    // Guard: ensure itemId is a valid ObjectId for malformed id -> 400
+    if (!mongoose.isValidObjectId(req.params.itemId)) {
+      return res.status(400).json({ message: 'Invalid item id' });
     }
+    const userId = (req.user && req.user._id) || req.body.userId || req.get('x-user-id');
     const updated = await ClothingItem.findByIdAndUpdate(
       req.params.itemId,
       { $pull: { likes: userId } },
@@ -87,10 +100,13 @@ const unlikeClothingItem = async (req, res, next) => {
   }
 };
 
-// DELETE: items/:itemId — delete an item by _id
+// DELETE: delete an item by _id
 const deleteClothingItem = async (req, res, next) => {
   try {
-    // findByIdAndDelete doesn't support orFail(), so find then delete
+    // Validate itemId early: malformed ids should return 400 with a JSON message
+    if (!mongoose.isValidObjectId(req.params.itemId)) {
+      return res.status(400).json({ message: 'Invalid item id' });
+    }
     const item = await ClothingItem.findById(req.params.itemId).orFail(new NotFoundError('Item not found'));
     await item.deleteOne();
     return res.json(item);

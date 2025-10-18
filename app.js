@@ -21,14 +21,6 @@ const itemsRouter = require('./routes/clothingItems');
 app.use('/users', usersRouter);
 app.use('/items', itemsRouter);
 
-
-app.use((req, res, next) => {
-  req.user = {
-    _id: '61eade4c6d5acf558c42d9b8'
-  };
-  next();
-});
-
 // 404 for any unmatched route
 app.use((req, res) => {
   res.status(404).json({ message: 'Resource not found' });
