@@ -1,6 +1,6 @@
+const mongoose = require('mongoose');
 const { ClothingItem } = require('../models/clothingItem');
 const { NotFoundError } = require('../utils/errors');
-const mongoose = require('mongoose');
 
 
 // GET: return all items

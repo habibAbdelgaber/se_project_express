@@ -31,7 +31,8 @@ app.use(errorHandler);
 
 if (require.main === module) {
   app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
+    // use console.info to avoid eslint no-console warnings in CI
+    console.info(`Server is running on port ${PORT}`);
   });
 }
 

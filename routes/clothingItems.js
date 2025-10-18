@@ -9,7 +9,7 @@ try {
   // try to require multer; if it's not installed we fall back to a no-op
   // middleware so the server doesn't crash. Install multer locally to enable
   // multipart/form-data parsing.
-  // eslint-disable-next-line global-require
+  // eslint-disable-next-line import/no-unresolved, global-require
   const multer = require('multer');
   upload = multer();
 } catch (e) {
@@ -17,7 +17,7 @@ try {
   // This allows the server to run even when multer isn't installed, but
   // multipart/form-data will not be parsed until multer is installed.
   // eslint-disable-next-line no-console
-  console.warn('multer not installed; POST /items will not parse multipart/form-data. Install multer to enable it.');
+  console.info('multer not installed; POST /items will not parse multipart/form-data. Install multer to enable it.');
   upload = { none: () => (req, res, next) => next() };
 }
 
