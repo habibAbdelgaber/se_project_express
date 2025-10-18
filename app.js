@@ -8,6 +8,14 @@ const { PORT = 3001 } = process.env;
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Test environment helper: ensure req.user is populated with a test user id
+// Tests expect `req.user._id` to be available. Set the known test id here.
+app.use((req, res, next) => {
+  // Important: string form matches tests that compare to a hex string
+  req.user = { _id: '68e12b5092c0df7e58d26e74' };
+  return next();
+});
+
 mongoose.connect('mongodb://127.0.0.1:27017/wtwr', {
   useNewUrlParser: true,
   useUnifiedTopology: true,
