@@ -55,7 +55,7 @@ function handleMongooseError(originalErr) {
 }
 
 // Express error handling middleware
-function errorHandler(err, req, res) {
+function errorHandler(err, req, res, _next) {
   // Normalize Mongoose/Mongo errors without reassigning the parameter
   const normalized = (err && (err.name === 'ValidationError' || err.name === 'CastError' || err.code === 11000))
     ? handleMongooseError(err)
