@@ -14,7 +14,7 @@ app.use((req, res, next) => {
   };
   next();
 });
-mongoose.connect('mongodb://127.0.0.1:27017/wtwr', {
+mongoose.connect('mongodb://localhost:27017/wtwr_db', {
   useNewUrlParser: true,
   useUnifiedTopology: true,
 });
