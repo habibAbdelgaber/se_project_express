@@ -1,4 +1,4 @@
-const { User } = require('../models/clothingItem');
+const { User } = require('../models/user');
 const { NotFoundError, BadRequestError } = require('../utils/errors');
 
 // GET: return all users

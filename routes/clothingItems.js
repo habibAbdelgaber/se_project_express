@@ -1,12 +1,23 @@
 const express = require('express');
 const mongoose = require('mongoose');
+const multer = require('multer');
 
 const router = express.Router();
+// Import controller functions
+const {
+  getClothingItems,
+  createClothingItem,
+  deleteClothingItem,
+  getClothingItem,
+  getItemLikes,
+  likeClothingItem,
+  unlikeClothingItem,
+} = require('../controllers/clothingItems');
 
 let upload;
+
 try {
-  // Try to use multer for parsing form-data
-  const multer = require('multer');
+  // Handling multipart/form-data
   upload = multer();
 } catch (e) {
   // Fallback: no-op middleware if multer is not installed
@@ -22,16 +33,6 @@ router.param('itemId', (req, res, next, id) => {
   return next();
 });
 
-// Import controller functions
-const {
-  getClothingItems,
-  createClothingItem,
-  deleteClothingItem,
-  getClothingItem,
-  getItemLikes,
-  likeClothingItem,
-  unlikeClothingItem,
-} = require('../controllers/clothingItems');
 
 // GET: all clothing items
 router.get('/', getClothingItems);

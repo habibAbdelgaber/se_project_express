@@ -1,6 +1,10 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const { errorHandler } = require('./utils/errors');
+// mount routers
+const usersRouter = require('./routes/users');
+
+const itemsRouter = require('./routes/clothingItems');
 
 const app = express();
 const { PORT = 3001 } = process.env;
@@ -18,11 +22,6 @@ mongoose.connect('mongodb://localhost:27017/wtwr_db', {
   useNewUrlParser: true,
   useUnifiedTopology: true,
 });
-
-// mount routers
-const usersRouter = require('./routes/users');
-
-const itemsRouter = require('./routes/clothingItems');
 
 app.use('/users', usersRouter);
 app.use('/items', itemsRouter);
