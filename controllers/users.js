@@ -1,5 +1,5 @@
 const { User } = require('../models/user');
-const { NotFoundError, BadRequestError } = require('../utils/errors');
+const { NotFoundError, BadRequestError, HTTP_OK, HTTP_CREATED } = require('../utils/errors');
 
 // GET: return all users
 const getUsers = async (req, res, next) => {
@@ -27,7 +27,7 @@ const createUser = async (req, res, next) => {
   try {
     const newUser = new User({ name, avatar });
     await newUser.save();
-    return res.status(201).json(newUser);
+    return res.status(HTTP_CREATED).json(newUser);
   } catch (error) {
     // Convert Mongoose validation/cast errors to 400
     if (error && (error.name === 'ValidationError' || error.name === 'CastError')) {
@@ -37,7 +37,7 @@ const createUser = async (req, res, next) => {
     if (error && error.code === 11000) {
       try {
         const existing = await User.findOne({ name });
-        if (existing) return res.status(200).json(existing);
+        if (existing) return res.status(HTTP_OK).json(existing);
       } catch (findErr) {
         return next(findErr);
       }
