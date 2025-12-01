@@ -69,8 +69,16 @@ function errorHandler(err, req, res, _next) {
   return res.status(status).json({ message: safeMessage });
 }
 
+const BAD_REQUEST_ERROR_CODE = 400; 
+const NOT_FOUND_ERROR_CODE = 404; 
+const SERVER_ERROR_CODE = 500; 
+
 // Export all error classes and middleware
-module.exports = {
+module.exports = { 
+  BAD_REQUEST_ERROR_CODE, 
+  NOT_FOUND_ERROR_CODE, 
+  SERVER_ERROR_CODE, 
+
   AppError,
   BadRequestError,
   NotFoundError,
