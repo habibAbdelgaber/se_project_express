@@ -68,13 +68,18 @@ function errorHandler(err, req, res, _next) {
   res.set('Content-Type', 'application/json');
   return res.status(status).json({ message: safeMessage });
 }
-
+const HTTP_OK = 200;
+const HTTP_CREATED = 201;
+const UNAUTHORIZED_ERROR_CODE = 401;
 const BAD_REQUEST_ERROR_CODE = 400; 
 const NOT_FOUND_ERROR_CODE = 404; 
 const SERVER_ERROR_CODE = 500; 
 
 // Export all error classes and middleware
-module.exports = { 
+module.exports = {
+  HTTP_OK,
+  HTTP_CREATED,
+  UNAUTHORIZED_ERROR_CODE,
   BAD_REQUEST_ERROR_CODE, 
   NOT_FOUND_ERROR_CODE, 
   SERVER_ERROR_CODE, 
