@@ -5,6 +5,7 @@ const { errorHandler } = require('./utils/errors');
 const usersRouter = require('./routes/users');
 
 const itemsRouter = require('./routes/clothingItems');
+const { NOT_FOUND_ERROR_CODE } = require('./utils/errors');
 
 const app = express();
 const { PORT = 3001 } = process.env;
@@ -28,7 +29,7 @@ app.use('/items', itemsRouter);
 
 // 404 for any unmatched route
 app.use((req, res) => {
-  res.status(404).json({ message: 'Resource not found' });
+  res.status(NOT_FOUND_ERROR_CODE).json({ message: 'Resource not found' });
 });
 
 // centralized error handler

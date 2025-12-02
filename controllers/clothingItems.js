@@ -17,7 +17,7 @@ const getClothingItem = async (req, res, next) => {
   try {
     // Validate itemId early: malformed ids should return 400
     if (!mongoose.isValidObjectId(req.params.itemId)) {
-      return res.status(BAD_REQUEST_ERROR_CODD).json({ message: 'Invalid item id' });
+      return res.status(BAD_REQUEST_ERROR_CODE).json({ message: 'Invalid item id' });
     }
     const item = await ClothingItem.findById(req.params.itemId).orFail(
       new NotFoundError('Item not found')

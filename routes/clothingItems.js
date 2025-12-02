@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const multer = require('multer');
 
 const router = express.Router();
+const { BAD_REQUEST_ERROR_CODE } = require('../utils/errors');
 // Import controller functions
 const {
   getClothingItems,
@@ -28,7 +29,7 @@ try {
 // Validate :itemId and return 400 for invalid ObjectId
 router.param('itemId', (req, res, next, id) => {
   if (!mongoose.isValidObjectId(id)) {
-    return res.status(400).json({ message: 'Invalid item id' });
+    return res.status(BAD_REQUEST_ERROR_CODE).json({ message: 'Invalid item id' });
   }
   return next();
 });
