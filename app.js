@@ -1,14 +1,12 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const { errorHandler } = require('./utils/errors');
-// mount routers
 const usersRouter = require('./routes/users');
-
 const itemsRouter = require('./routes/clothingItems');
 const { NOT_FOUND_ERROR_CODE } = require('./utils/errors');
 
 const app = express();
-const { PORT = 3001 } = process.env;
+const { PORT = 5000, MONGODB_URI = 'mongodb://localhost:27017/wtwr_db' } = process.env;
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -19,9 +17,19 @@ app.use((req, res, next) => {
   };
   next();
 });
-mongoose.connect('mongodb://localhost:27017/wtwr_db', {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
+
+mongoose.connect(MONGODB_URI)
+  .then(() => console.log('Connected to MongoDB'))
+  .catch((err) => console.error('MongoDB connection error:', err));
+
+app.get('/', (req, res) => {
+  res.json({ 
+    message: 'WTWR API is running',
+    endpoints: {
+      users: '/users',
+      items: '/items'
+    }
+  });
 });
 
 app.use('/users', usersRouter);
@@ -36,8 +44,7 @@ app.use((req, res) => {
 app.use(errorHandler);
 
 if (require.main === module) {
-  app.listen(PORT, () => {
-    // use console.info to avoid eslint no-console warnings in CI
+  app.listen(PORT, '0.0.0.0', () => {
     console.log(`Server is running on port ${PORT}`);
   });
 }
