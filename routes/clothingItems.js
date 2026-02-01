@@ -4,7 +4,7 @@ const multer = require('multer');
 
 const router = express.Router();
 const { BAD_REQUEST_ERROR_CODE } = require('../utils/errors');
-// Import controller functions
+const { auth } = require('../middlewares/auth');
 const {
   getClothingItems,
   createClothingItem,
@@ -18,15 +18,12 @@ const {
 let upload;
 
 try {
-  // Handling multipart/form-data
   upload = multer();
 } catch (e) {
-  // Fallback: no-op middleware if multer is not installed
   console.info('multer not installed; POST /items will not parse multipart/form-data. Install multer to enable it.');
   upload = { none: () => (req, res, next) => next() };
 }
 
-// Validate :itemId and return 400 for invalid ObjectId
 router.param('itemId', (req, res, next, id) => {
   if (!mongoose.isValidObjectId(id)) {
     return res.status(BAD_REQUEST_ERROR_CODE).json({ message: 'Invalid item id' });
@@ -34,26 +31,18 @@ router.param('itemId', (req, res, next, id) => {
   return next();
 });
 
-
-// GET: all clothing items
 router.get('/', getClothingItems);
 
-// GET: single clothing item
 router.get('/:itemId', getClothingItem);
 
-// GET: likes for an item
 router.get('/:itemId/likes', getItemLikes);
 
-// POST: create a new item
-router.post('/', upload.none(), createClothingItem);
+router.post('/', auth, upload.none(), createClothingItem);
 
-// DELETE: delete an item
-router.delete('/:itemId', deleteClothingItem);
+router.delete('/:itemId', auth, deleteClothingItem);
 
-// PUT: like an item
-router.put('/:itemId/likes', likeClothingItem);
+router.put('/:itemId/likes', auth, likeClothingItem);
 
-// DELETE: unlike an item
-router.delete('/:itemId/likes', unlikeClothingItem);
+router.delete('/:itemId/likes', auth, unlikeClothingItem);
 
 module.exports = router;

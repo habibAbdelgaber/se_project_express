@@ -1,8 +1,7 @@
 const mongoose = require('mongoose');
 const { ClothingItem } = require('../models/clothingItem');
-const { NotFoundError, BAD_REQUEST_ERROR_CODE, UNAUTHORIZED_ERROR_CODE } = require('../utils/errors');
+const { NotFoundError, ForbiddenError, BAD_REQUEST_ERROR_CODE, UNAUTHORIZED_ERROR_CODE } = require('../utils/errors');
 
-// GET: return all items
 const getClothingItems = async (req, res, next) => {
   try {
     const items = await ClothingItem.find();
@@ -12,10 +11,8 @@ const getClothingItems = async (req, res, next) => {
   }
 };
 
-// GET: return single item or 404 if not found
 const getClothingItem = async (req, res, next) => {
   try {
-    // Validate itemId early: malformed ids should return 400
     if (!mongoose.isValidObjectId(req.params.itemId)) {
       return res.status(BAD_REQUEST_ERROR_CODE).json({ message: 'Invalid item id' });
     }
@@ -28,10 +25,8 @@ const getClothingItem = async (req, res, next) => {
   }
 };
 
-// GET: return the likes array for an item
 const getItemLikes = async (req, res, next) => {
   try {
-    // Validate itemId early: malformed ids -> 400
     if (!mongoose.isValidObjectId(req.params.itemId)) {
       return res.status(BAD_REQUEST_ERROR_CODE).json({ message: 'Invalid item id' });
     }
@@ -44,14 +39,11 @@ const getItemLikes = async (req, res, next) => {
   }
 };
 
-// POST: create a new item
 const createClothingItem = async (req, res, next) => {
-  // 1) Owner must always come from req.user._id; reject if missing
   if (!req.user || !req.user._id) {
     return res.status(UNAUTHORIZED_ERROR_CODE).json({ message: 'Authentication required' });
   }
 
-  // Accept common field names from JSON or form-data; provide safe defaults
   const name = (req.body.name || req.body.title || req.body.itemName || '').trim();
   const resolvedWeather = req.body.weather || req.body.climate || req.body.temperature;
   const resolvedImage =
@@ -63,7 +55,6 @@ const createClothingItem = async (req, res, next) => {
 
   const owner = req.user._id;
 
-  // required field checks: name, weather, imageUrl
   if (!name || !resolvedWeather || !resolvedImage) {
     return res.status(BAD_REQUEST_ERROR_CODE).json({ message: 'All fields are required' });
   }
@@ -82,15 +73,12 @@ const createClothingItem = async (req, res, next) => {
   }
 };
 
-// PUT: like an item
 const likeClothingItem = async (req, res, next) => {
   try {
-    // Guard: ensure itemId is a valid ObjectId and expect a 400 Bad Request with a JSON message.
     if (!mongoose.isValidObjectId(req.params.itemId)) {
       return res.status(BAD_REQUEST_ERROR_CODE).json({ message: 'Invalid item id' });
     }
 
-    // 2) Acting user must come only from req.user._id
     if (!req.user || !req.user._id) {
       return res.status(UNAUTHORIZED_ERROR_CODE).json({ message: 'Authentication required' });
     }
@@ -109,15 +97,12 @@ const likeClothingItem = async (req, res, next) => {
   }
 };
 
-// DELETE: unlike an item
 const unlikeClothingItem = async (req, res, next) => {
   try {
-    // Guard: ensure itemId is a valid ObjectId for malformed id -> 400
     if (!mongoose.isValidObjectId(req.params.itemId)) {
       return res.status(BAD_REQUEST_ERROR_CODE).json({ message: 'Invalid item id' });
     }
 
-    // 3) Acting user must come only from req.user._id; no fallback to body/headers
     if (!req.user || !req.user._id) {
       return res.status(UNAUTHORIZED_ERROR_CODE).json({ message: 'Authentication required' });
     }
@@ -136,16 +121,24 @@ const unlikeClothingItem = async (req, res, next) => {
   }
 };
 
-// DELETE: delete an item by _id
 const deleteClothingItem = async (req, res, next) => {
   try {
-    // Validate itemId early: malformed ids should return 400 with a JSON message
     if (!mongoose.isValidObjectId(req.params.itemId)) {
       return res.status(BAD_REQUEST_ERROR_CODE).json({ message: 'Invalid item id' });
     }
+
+    if (!req.user || !req.user._id) {
+      return res.status(UNAUTHORIZED_ERROR_CODE).json({ message: 'Authentication required' });
+    }
+
     const item = await ClothingItem.findById(req.params.itemId).orFail(
       new NotFoundError('Item not found')
     );
+
+    if (item.owner.toString() !== req.user._id.toString()) {
+      return next(ForbiddenError('You are not authorized to delete this item'));
+    }
+
     await item.deleteOne();
     return res.json(item);
   } catch (error) {
@@ -153,7 +146,6 @@ const deleteClothingItem = async (req, res, next) => {
   }
 };
 
-// Export all controller functions
 module.exports = {
   getClothingItems,
   getClothingItem,

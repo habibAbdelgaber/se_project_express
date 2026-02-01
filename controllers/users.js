@@ -1,7 +1,16 @@
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 const { User } = require('../models/user');
-const { NotFoundError, BadRequestError, HTTP_OK, HTTP_CREATED } = require('../utils/errors');
+const { JWT_SECRET } = require('../utils/config');
+const { 
+  NotFoundError, 
+  BadRequestError, 
+  ConflictError,
+  UnauthorizedError,
+  HTTP_OK, 
+  HTTP_CREATED 
+} = require('../utils/errors');
 
-// GET: return all users
 const getUsers = async (req, res, next) => {
   try {
     const users = await User.find();
@@ -11,7 +20,6 @@ const getUsers = async (req, res, next) => {
   }
 };
 
-// GET: return a user by _id
 const getUser = async (req, res, next) => {
   try {
     const user = await User.findById(req.params.userId).orFail(new NotFoundError('User not found'));
@@ -21,34 +29,82 @@ const getUser = async (req, res, next) => {
   }
 };
 
-// POST: create a new user
-const createUser = async (req, res, next) => {
-  const { name, avatar } = req.body;
+const getCurrentUser = async (req, res, next) => {
   try {
-    const newUser = new User({ name, avatar });
-    await newUser.save();
-    return res.status(HTTP_CREATED).json(newUser);
+    const user = await User.findById(req.user._id).orFail(new NotFoundError('User not found'));
+    return res.json(user);
   } catch (error) {
-    // Convert Mongoose validation/cast errors to 400
+    return next(error);
+  }
+};
+
+const createUser = async (req, res, next) => {
+  const { name, avatar, email, password } = req.body;
+
+  if (!email || !password) {
+    return next(BadRequestError('Email and password are required'));
+  }
+
+  try {
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const newUser = new User({ name, avatar, email, password: hashedPassword });
+    await newUser.save();
+
+    const userResponse = newUser.toObject();
+    delete userResponse.password;
+
+    return res.status(HTTP_CREATED).json(userResponse);
+  } catch (error) {
+    if (error && error.code === 11000) {
+      return next(ConflictError('A user with this email already exists'));
+    }
     if (error && (error.name === 'ValidationError' || error.name === 'CastError')) {
       return next(BadRequestError('Invalid data'));
-    }
-    // If duplicate key (user already exists), return existing user with 200
-    if (error && error.code === 11000) {
-      try {
-        const existing = await User.findOne({ name });
-        if (existing) return res.status(HTTP_OK).json(existing);
-      } catch (findErr) {
-        return next(findErr);
-      }
     }
     return next(error);
   }
 };
 
-// Export all controller functions
+const login = async (req, res, next) => {
+  const { email, password } = req.body;
+
+  if (!email || !password) {
+    return next(BadRequestError('Email and password are required'));
+  }
+
+  try {
+    const user = await User.findUserByCredentials(email, password);
+    const token = jwt.sign({ _id: user._id }, JWT_SECRET, { expiresIn: '7d' });
+    return res.status(HTTP_OK).json({ token });
+  } catch (error) {
+    return next(UnauthorizedError('Incorrect email or password'));
+  }
+};
+
+const updateCurrentUser = async (req, res, next) => {
+  const { name, avatar } = req.body;
+
+  try {
+    const user = await User.findByIdAndUpdate(
+      req.user._id,
+      { name, avatar },
+      { new: true, runValidators: true }
+    ).orFail(new NotFoundError('User not found'));
+
+    return res.status(HTTP_OK).json(user);
+  } catch (error) {
+    if (error && (error.name === 'ValidationError' || error.name === 'CastError')) {
+      return next(BadRequestError('Invalid data'));
+    }
+    return next(error);
+  }
+};
+
 module.exports = {
   getUsers,
   getUser,
+  getCurrentUser,
   createUser,
+  login,
+  updateCurrentUser,
 };
