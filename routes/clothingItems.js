@@ -25,7 +25,7 @@ try {
 }
 
 router.param('itemId', (req, res, next, id) => {
-  if (!mongoose.isValidObjectId(id)) {
+  if (!mongoose.isValidObjectId(req.params.itemId)) {
     return res.status(BAD_REQUEST_ERROR_CODE).json({ message: 'Invalid item id' });
   }
   return next();
@@ -33,9 +33,9 @@ router.param('itemId', (req, res, next, id) => {
 
 router.get('/', getClothingItems);
 
-router.get('/:itemId', getClothingItem);
+router.get('/:itemId', auth, getClothingItem);
 
-router.get('/:itemId/likes', getItemLikes);
+router.get('/:itemId/likes', auth, getItemLikes);
 
 router.post('/', auth, upload.none(), createClothingItem);
 

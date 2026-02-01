@@ -74,7 +74,7 @@ const login = async (req, res, next) => {
 
   try {
     const user = await User.findUserByCredentials(email, password);
-    const token = jwt.sign({ _id: user._id }, JWT_SECRET, { expiresIn: '7d' });
+    const token = jwt.sign({ _id: user._id.toString() }, JWT_SECRET, { expiresIn: '7d' });
     return res.status(HTTP_OK).json({ token });
   } catch (error) {
     return next(UnauthorizedError('Incorrect email or password'));
