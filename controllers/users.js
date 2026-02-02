@@ -41,8 +41,8 @@ const getCurrentUser = async (req, res, next) => {
 const createUser = async (req, res, next) => {
   const { name, avatar, email, password } = req.body;
 
-  if (!email || !password) {
-    return next(BadRequestError('Email and password are required'));
+  if (!name || !avatar || !email || !password) {
+    return next(BadRequestError('All fields are required: name, avatar, email, password'));
   }
 
   try {
@@ -58,8 +58,12 @@ const createUser = async (req, res, next) => {
     if (error && error.code === 11000) {
       return next(ConflictError('A user with this email already exists'));
     }
-    if (error && (error.name === 'ValidationError' || error.name === 'CastError')) {
-      return next(BadRequestError('Invalid data'));
+    if (error && error.name === 'ValidationError') {
+      const messages = Object.values(error.errors).map((e) => e.message).join(', ');
+      return next(BadRequestError(messages || 'Invalid data'));
+    }
+    if (error && error.name === 'CastError') {
+      return next(BadRequestError('Invalid data format'));
     }
     return next(error);
   }
