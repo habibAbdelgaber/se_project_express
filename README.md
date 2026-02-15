@@ -22,7 +22,7 @@ This is a RESTful API server for the "What to Wear?" application. It manages use
 │   ├── config.js       # JWT secret configuration
 │   └── errors.js       # Error classes and handlers
 ├── package.json        # Dependencies and scripts
-└── replit.md           # This file
+
 ```
 
 ## API Endpoints
@@ -56,8 +56,8 @@ The API uses JWT (JSON Web Token) for authentication:
 - `JWT_SECRET` - Secret key for JWT signing (has default for development)
 
 ## Setup
-1. Set the `MONGODB_URI` environment variable to your MongoDB connection string (e.g., MongoDB Atlas)
-2. Optionally set `JWT_SECRET` for production
+1. Set the `MONGODB_URI` environment variable to MongoDB connection string (e.g., MongoDB Atlas)
+2. Set `JWT_SECRET` for production
 3. Run `npm install` to install dependencies
 4. Run `npm run dev` for development or `npm start` for production
 
@@ -74,4 +74,5 @@ The API uses JWT (JSON Web Token) for authentication:
 - JWT tokens expire after 7 days
 - Users can only delete their own clothing items
 - Protected routes require valid JWT tokens
-[Check out the pitch](https://vimeo.com/1165150003/1b047940f7?fl=ip&fe=ec)
+- [Check out the pitch](https://vimeo.com/1165150003/1b047940f7?fl=ip&fe=ec)
+- https://github.com/<habibAbdelgaber>/<se_project_express>/actions/workflows/<tests>/badge.svg
