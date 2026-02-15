@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 const { ClothingItem } = require('../models/clothingItem');
-const { NotFoundError, ForbiddenError, BadRequestError, BAD_REQUEST_ERROR_CODE, UNAUTHORIZED_ERROR_CODE } = require('../utils/errors');
+const { NotFoundError, ForbiddenError, BadRequestError, BAD_REQUEST_ERROR_CODE, UNAUTHORIZED_ERROR_CODE, HTTP_CREATED } = require('../utils/errors');
 
 const getClothingItems = async (req, res, next) => {
   try {
@@ -66,7 +66,7 @@ const createClothingItem = async (req, res, next) => {
       owner,
     });
     await newItem.save();
-    return res.status(201).json(newItem);
+    return res.status(HTTP_CREATED).json(newItem);
   } catch (error) {
     return next(error);
   }
