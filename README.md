@@ -75,4 +75,6 @@ The API uses JWT (JSON Web Token) for authentication:
 - Users can only delete their own clothing items
 - Protected routes require valid JWT tokens
 - [Check out the pitch](https://vimeo.com/1165150003/1b047940f7?fl=ip&fe=ec)
-- https://github.com/<habibAbdelgaber>/<se_project_express>/actions/workflows/<tests>/badge.svg
+
+
+https://github.com/habibAbdelgaber/se_project_express/actions/workflows/tests.yml/badge.svg
