@@ -1,77 +1,77 @@
-# WTWR (What to Wear?): Back End
+# WTWR (What to Wear?) - Backend API
 
-The WTWR back end is a RESTful API server for the *What to Wear?* application.  
-It manages users, clothing items, and likes, and provides secure access to data through authenticated routes.  
-The server connects to a MongoDB database and exposes endpoints used by the front end to manage clothing items and user profiles.
+## Overview
+This is a RESTful API server for the "What to Wear?" application. It manages users, clothing items, and likes using Express.js and MongoDB. The API includes JWT-based authentication and authorization.
 
----
+## Project Structure
+```
+├── app.js              # Main application entry point
+├── controllers/        # Request handlers
+│   ├── clothingItems.js
+│   └── users.js
+├── middlewares/        # Express middleware
+│   └── auth.js         # JWT authentication middleware
+├── models/             # Mongoose schemas
+│   ├── clothingItem.js
+│   └── user.js
+├── routes/             # API route definitions
+│   ├── clothingItems.js
+│   ├── index.js
+│   └── users.js
+├── utils/              # Utility functions
+│   ├── config.js       # JWT secret configuration
+│   └── errors.js       # Error classes and handlers
+├── package.json        # Dependencies and scripts
+└── replit.md           # This file
+```
 
-## 🚀 Functionality Overview
+## API Endpoints
 
-The API provides the following features:
+### Public Routes (No Authentication Required)
+- `GET /` - Health check / API info
+- `POST /signup` - Create a new user account
+- `POST /signin` - Login and receive JWT token
+- `GET /items` - Get all clothing items
 
-### 👤 Users
-- Create and manage user profiles
-- Store avatar images as URLs
-- Enforce validation rules (name length, valid URLs, required fields)
+### Protected Routes (Require JWT Token)
+- `GET /users/me` - Get current user profile
+- `PATCH /users/me` - Update current user (name, avatar)
+- `GET /items/:itemId` - Get one clothing item
+- `POST /items` - Create a new clothing item
+- `DELETE /items/:itemId` - Delete a clothing item (owner only)
+- `PUT /items/:itemId/likes` - Like an item
+- `DELETE /items/:itemId/likes` - Remove like
+- `GET /items/:itemId/likes` - Get likes for an item
 
-### 👕 Clothing Items
-- Create clothing items with:
-  - name
-  - weather type (`hot`, `warm`, `cold`)
-  - image URL
-- Delete clothing items
-- Retrieve all items or a single item by ID
+## Authentication
+The API uses JWT (JSON Web Token) for authentication:
+1. Sign up with `POST /signup` providing name, avatar, email, and password
+2. Login with `POST /signin` to receive a JWT token
+3. Include the token in requests as: `Authorization: Bearer <token>`
+4. Tokens expire after 7 days
 
-### ❤️ Likes
-- Like an item
-- Remove a like from an item
-- Get the list of users who liked an item
+## Environment Variables
+- `PORT` - Server port (default: 5000)
+- `MONGODB_URI` - MongoDB connection string (required for database operations)
+- `JWT_SECRET` - Secret key for JWT signing (has default for development)
 
-### 🔐 Authentication (via middleware / stub)
-- Protects item creation and likes
-- Uses `req.user._id` as the authenticated user source
-- Prevents client-side identity spoofing
+## Setup
+1. Set the `MONGODB_URI` environment variable to your MongoDB connection string (e.g., MongoDB Atlas)
+2. Optionally set `JWT_SECRET` for production
+3. Run `npm install` to install dependencies
+4. Run `npm run dev` for development or `npm start` for production
 
----
+## Technologies
+- Node.js with Express.js
+- MongoDB with Mongoose ODM
+- bcryptjs for password hashing
+- jsonwebtoken for JWT authentication
+- Validator.js for URL/email validation
 
-## 🔗 API Endpoints
-
-### Clothing Items
-- `GET /items` — Get all clothing items  
-- `GET /items/:itemId` — Get one clothing item by ID  
-- `POST /items` — Create a new clothing item  
-- `DELETE /items/:itemId` — Delete a clothing item  
-
-### Likes
-- `GET /items/:itemId/likes` — Get likes for an item  
-- `PUT /items/:itemId/likes` — Like an item  
-- `DELETE /items/:itemId/likes` — Remove like  
-
----
-
-## 🛠 Technologies & Tools Used
-
-### Backend
-- **Node.js** — JavaScript runtime
-- **Express.js** — REST API framework
-- **MongoDB** — Database
-- **Mongoose** — ODM for MongoDB
-
-### Security & Validation
-- **Validator.js** — URL validation
-- **mongoose ObjectId validation** — Prevents invalid database queries
-- **Authentication middleware** — Injects `req.user` safely
-
-### Development Tools
-- **Nodemon** — Hot reload during development
-- **ESLint** — Enforces coding standards
-- **Prettier** — Code formatting
-- **Postman / Insomnia** — API testing
-- **Multer** — Form-data handling (optional for uploads)
-
----
-
-## ▶ Running the Project
-
-### Start server
+## Security Features
+- Passwords are hashed with bcrypt before storage
+- Passwords are never returned in API responses (select: false)
+- JWT tokens expire after 7 days
+- Users can only delete their own clothing items
+- Protected routes require valid JWT tokens
+[Check out the pitch](https://vimeo.com/1165150003/1b047940f7?fl=ip&fe=ec)

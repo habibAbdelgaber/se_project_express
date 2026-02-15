@@ -8,7 +8,7 @@ const { createUser, login } = require('./controllers/users');
 const { NOT_FOUND_ERROR_CODE } = require('./utils/errors');
 
 const app = express();
-const { PORT = 5000, MONGODB_URI = 'mongodb://localhost:27017/wtwr_db' } = process.env;
+const { PORT = 3000, MONGODB_URI = 'mongodb://localhost:27017/wtwr_db' } = process.env;
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -18,7 +18,7 @@ mongoose.connect(MONGODB_URI)
   .catch((err) => console.error('MongoDB connection error:', err));
 
 app.get('/', (req, res) => {
-  res.json({ 
+  res.json({
     message: 'WTWR API is running',
     endpoints: {
       signup: 'POST /signup',

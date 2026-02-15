@@ -20,3 +20,5 @@ node_modules
 .upm
 .replit.nix
 *.nix
+.replit.md
+.replit
