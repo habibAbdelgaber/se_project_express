@@ -29,7 +29,7 @@ app.use((req, res) => {
 app.use(errorHandler);
 
 if (require.main === module) {
-  app.listen(PORT, '0.0.0.0', () => {
+  app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
   });
 }
