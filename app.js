@@ -14,12 +14,7 @@ const { PORT = 3000 } = process.env;
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-mongoose.connect('mongodb://localhost:27017/wtwr_db');
-
-// mongoose.connect(MONGODB_URI)
-//   .then(() => console.log('Connected to MongoDB'))
-//   .catch((err) => console.error('MongoDB connection error:', err));
-
+mongoose.connect('mongodb://127.0.0.1:27017/wtwr_db');
 
 app.post('/signup', createUser);
 app.post('/signin', login);
