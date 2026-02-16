@@ -2,15 +2,11 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const { errorHandler } = require('./utils/errors');
-const { auth } = require('./middlewares/auth');
-const usersRouter = require('./routes/users');
-const itemsRouter = require('./routes/clothingItems');
+const routes = require('./routes');
 const { createUser, login } = require('./controllers/users');
-const { NOT_FOUND_ERROR_CODE } = require('./utils/errors');
 
 const app = express();
-// const { PORT = 3000, MONGODB_URI = 'mongodb://localhost:27017/wtwr_db' } = process.env;
-const { PORT = 3000 } = process.env;
+const { PORT = 5000 } = process.env;
 
 app.use(express.json());
 app.use(cors());
@@ -21,12 +17,7 @@ mongoose.connect('mongodb://127.0.0.1:27017/wtwr_db');
 app.post('/signup', createUser);
 app.post('/signin', login);
 
-app.use('/users', auth, usersRouter);
-app.use('/items', itemsRouter);
-
-app.use((req, res) => {
-  res.status(NOT_FOUND_ERROR_CODE).json({ message: 'Resource not found' });
-});
+app.use(routes);
 
 app.use(errorHandler);
 

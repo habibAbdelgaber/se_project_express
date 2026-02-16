@@ -11,24 +11,6 @@ const {
   HTTP_CREATED
 } = require('../utils/errors');
 
-const getUsers = async (req, res, next) => {
-  try {
-    const users = await User.find();
-    return res.json(users);
-  } catch (error) {
-    return next(error);
-  }
-};
-
-const getUser = async (req, res, next) => {
-  try {
-    const user = await User.findById(req.params.userId).orFail(new NotFoundError('User not found'));
-    return res.json(user);
-  } catch (error) {
-    return next(error);
-  }
-};
-
 const getCurrentUser = async (req, res, next) => {
   try {
     const user = await User.findById(req.user._id).orFail(new NotFoundError('User not found'));
@@ -81,6 +63,9 @@ const login = async (req, res, next) => {
     const token = jwt.sign({ _id: user._id.toString() }, JWT_SECRET, { expiresIn: '7d' });
     return res.status(HTTP_OK).json({ token });
   } catch (error) {
+    if (error.message === 'Incorrect email or password') {
+      return next(UnauthorizedError('Incorrect email or password'));
+    }
     return next(error);
   }
 };
@@ -105,8 +90,6 @@ const updateCurrentUser = async (req, res, next) => {
 };
 
 module.exports = {
-  getUsers,
-  getUser,
   getCurrentUser,
   createUser,
   login,
