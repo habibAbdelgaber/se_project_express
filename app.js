@@ -14,9 +14,6 @@ app.use(express.urlencoded({ extended: true }));
 
 mongoose.connect('mongodb://127.0.0.1:27017/wtwr_db');
 
-app.post('/signup', createUser);
-app.post('/signin', login);
-
 app.use(routes);
 
 app.use(errorHandler);

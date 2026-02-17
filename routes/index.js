@@ -7,6 +7,9 @@ const usersRouter = require('./users');
 const clothingItemsRouter = require('./clothingItems');
 const { NOT_FOUND_ERROR_CODE } = require('../utils/errors');
 
+router.post("/signup", createUser);
+router.post("/signin", login);
+
 router.use('/users', auth, usersRouter);
 router.use('/items', clothingItemsRouter);
 
