@@ -1,6 +1,9 @@
-const mongoose = require('mongoose');
 const { ClothingItem } = require('../models/clothingItem');
-const { NotFoundError, ForbiddenError, BAD_REQUEST_ERROR_CODE, UNAUTHORIZED_ERROR_CODE } = require('../utils/errors');
+const {
+  NotFoundError,
+  BadRequestError,
+  ForbiddenError,
+} = require('../utils/errors');
 
 const getClothingItems = async (req, res, next) => {
   try {
@@ -12,27 +15,12 @@ const getClothingItems = async (req, res, next) => {
 };
 
 const createClothingItem = async (req, res, next) => {
-  if (!req.user || !req.user._id) {
-    return res.status(UNAUTHORIZED_ERROR_CODE).json({ message: 'Authentication required' });
-  }
-
   const { name, weather, imageUrl } = req.body;
   const owner = req.user._id;
 
-  const missing = [];
-  if (!name) missing.push('name');
-  if (!weather) missing.push('weather (hot, warm, or cold)');
-  if (!imageUrl) missing.push('imageUrl');
-
-  if (missing.length > 0) {
-    return res.status(BAD_REQUEST_ERROR_CODE).json({
-      message: `Missing required field(s): ${missing.join(', ')}`,
-    });
-  }
-
   try {
     const newItem = new ClothingItem({
-      name: name.trim(),
+      name,
       weather,
       imageUrl,
       owner,
@@ -40,79 +28,66 @@ const createClothingItem = async (req, res, next) => {
     await newItem.save();
     return res.status(201).json(newItem);
   } catch (error) {
+    if (error.name === 'ValidationError') {
+      return next(new BadRequestError('Invalid data'));
+    }
+    if (error.name === 'CastError') {
+      return next(new BadRequestError('The id string is in an invalid format'));
+    }
     return next(error);
   }
 };
 
 const likeClothingItem = async (req, res, next) => {
   try {
-    if (!mongoose.isValidObjectId(req.params.itemId)) {
-      return res.status(BAD_REQUEST_ERROR_CODE).json({ message: 'Invalid item id' });
-    }
-
-    if (!req.user || !req.user._id) {
-      return res.status(UNAUTHORIZED_ERROR_CODE).json({ message: 'Authentication required' });
-    }
-
-    const userId = req.user._id;
-
     const updated = await ClothingItem.findByIdAndUpdate(
       req.params.itemId,
-      { $addToSet: { likes: userId } },
+      { $addToSet: { likes: req.user._id } },
       { new: true }
     ).orFail(new NotFoundError('Item not found'));
 
     return res.json(updated);
   } catch (error) {
+    if (error.name === 'CastError') {
+      return next(new BadRequestError('The id string is in an invalid format'));
+    }
     return next(error);
   }
 };
 
 const unlikeClothingItem = async (req, res, next) => {
   try {
-    if (!mongoose.isValidObjectId(req.params.itemId)) {
-      return res.status(BAD_REQUEST_ERROR_CODE).json({ message: 'Invalid item id' });
-    }
-
-    if (!req.user || !req.user._id) {
-      return res.status(UNAUTHORIZED_ERROR_CODE).json({ message: 'Authentication required' });
-    }
-
-    const userId = req.user._id;
-
     const updated = await ClothingItem.findByIdAndUpdate(
       req.params.itemId,
-      { $pull: { likes: userId } },
+      { $pull: { likes: req.user._id } },
       { new: true }
     ).orFail(new NotFoundError('Item not found'));
 
     return res.json(updated);
   } catch (error) {
+    if (error.name === 'CastError') {
+      return next(new BadRequestError('The id string is in an invalid format'));
+    }
     return next(error);
   }
 };
 
 const deleteClothingItem = async (req, res, next) => {
   try {
-    if (!mongoose.isValidObjectId(req.params.itemId)) {
-      return res.status(BAD_REQUEST_ERROR_CODE).json({ message: 'Invalid item id' });
-    }
-
-    if (!req.user || !req.user._id) {
-      return res.status(UNAUTHORIZED_ERROR_CODE).json({ message: 'Authentication required' });
-    }
-
     const item = await ClothingItem.findById(req.params.itemId).orFail(
       new NotFoundError('Item not found')
     );
 
     if (item.owner.toString() !== req.user._id.toString()) {
-      return next(ForbiddenError('You are not authorized to delete this item'));
+      return next(new ForbiddenError('You are not authorized to delete this item'));
     }
 
     await item.deleteOne();
     return res.json(item);
   } catch (error) {
+    if (error.name === 'CastError') {
+      return next(new BadRequestError('The id string is in an invalid format'));
+    }
     return next(error);
   }
 };

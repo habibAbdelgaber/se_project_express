@@ -5,7 +5,6 @@ module.exports = {
   },
   extends: ["eslint:recommended", "airbnb-base", "prettier"],
   overrides: [
-    // { exclude: ["_id"] },
     {
       env: {
         node: true,
@@ -23,12 +22,6 @@ module.exports = {
   rules: {
     "no-underscore-dangle": ["error", { allow: ["_id"] }],
     'no-console': ['warn', { allow: ['warn', 'error', 'info', 'log'] }],
-    "no-unused-vars": [
-      "error",
-      {
-        "argsIgnorePattern": "^_",
-        "varsIgnorePattern": "^_"
-      }
-    ]
+    "no-unused-vars": ["error", { "argsIgnorePattern": "next" }]
   },
 };
