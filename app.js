@@ -4,6 +4,7 @@ const cors = require('cors');
 const { errors } = require('celebrate');
 const routes = require('./routes');
 const errorHandler = require('./middlewares/error-handler');
+const { requestLogger, errorLogger } = require('./middlewares/logger');
 const { createUser, login } = require('./controllers/users');
 const { validateUserBody, validateLogin } = require('./middlewares/validation');
 
@@ -16,10 +17,14 @@ app.use(express.urlencoded({ extended: true }));
 
 mongoose.connect('mongodb://127.0.0.1:27017/wtwr_db');
 
+app.use(requestLogger);
+
 app.post('/signup', validateUserBody, createUser);
 app.post('/signin', validateLogin, login);
 
 app.use(routes);
+
+app.use(errorLogger);
 
 app.use(errors());
 
