@@ -3,6 +3,7 @@ const multer = require('multer');
 
 const router = express.Router();
 const { auth } = require('../middlewares/auth');
+const { validateCardBody, validateId } = require('../middlewares/validation');
 const {
   getClothingItems,
   createClothingItem,
@@ -22,12 +23,12 @@ try {
 
 router.get('/', getClothingItems);
 
-router.post('/', auth, upload.none(), createClothingItem);
+router.post('/', auth, upload.none(), validateCardBody, createClothingItem);
 
-router.delete('/:itemId', auth, deleteClothingItem);
+router.delete('/:itemId', auth, validateId, deleteClothingItem);
 
-router.put('/:itemId/likes', auth, likeClothingItem);
+router.put('/:itemId/likes', auth, validateId, likeClothingItem);
 
-router.delete('/:itemId/likes', auth, unlikeClothingItem);
+router.delete('/:itemId/likes', auth, validateId, unlikeClothingItem);
 
 module.exports = router;

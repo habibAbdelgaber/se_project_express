@@ -1,9 +1,11 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
+const { errors } = require('celebrate');
 const routes = require('./routes');
 const errorHandler = require('./middlewares/error-handler');
 const { createUser, login } = require('./controllers/users');
+const { validateUserBody, validateLogin } = require('./middlewares/validation');
 
 const app = express();
 const { PORT = 5000 } = process.env;
@@ -14,10 +16,12 @@ app.use(express.urlencoded({ extended: true }));
 
 mongoose.connect('mongodb://127.0.0.1:27017/wtwr_db');
 
-app.post('/signup', createUser);
-app.post('/signin', login);
+app.post('/signup', validateUserBody, createUser);
+app.post('/signin', validateLogin, login);
 
 app.use(routes);
+
+app.use(errors());
 
 app.use(errorHandler);
 
