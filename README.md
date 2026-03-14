@@ -151,9 +151,9 @@ Still on the configuration screen, scroll to **Environment Variables** and add:
 |-----|-------|
 | `JWT_SECRET` | A long, random secret string |
 | `NODE_ENV` | `production` |
-| `MONGODB_URI` | The connection string copied from Step 1 |
+| `MONGO_URI` | The connection string copied from Step 1 |
 
-> Make sure `MONGODB_URI` is marked as **Encrypted** to keep it secure.
+> Make sure `MONGO_URI` is marked as **Encrypted** to keep it secure.
 
 ### 6. Connect the Database (Optional Shortcut)
 

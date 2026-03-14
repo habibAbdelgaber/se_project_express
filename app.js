@@ -9,13 +9,18 @@ const { createUser, login } = require('./controllers/users');
 const { validateUserBody, validateLogin } = require('./middlewares/validation');
 
 const app = express();
-const { PORT = 5000 } = process.env;
+const {
+  PORT = 5000,
+  MONGO_URI = 'mongodb://127.0.0.1:27017/wtwr_db',
+} = process.env;
 
 app.use(express.json());
 app.use(cors());
 app.use(express.urlencoded({ extended: true }));
 
-mongoose.connect('mongodb://127.0.0.1:27017/wtwr_db');
+mongoose.connect(MONGO_URI)
+  .then(() => console.log('Connected to MongoDB'))
+  .catch((err) => console.error('MongoDB connection error:', err));
 
 app.use(requestLogger);
 
