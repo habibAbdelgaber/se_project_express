@@ -105,180 +105,83 @@ The server will start on `http://localhost:5000`.
 
 ---
 
-## Deployment on DigitalOcean
+## Deployment on DigitalOcean App Platform
 
-### 1. Create a Droplet
+DigitalOcean App Platform is a fully managed PaaS that handles infrastructure, scaling, and deployments automatically.
 
-1. Log in to [DigitalOcean](https://cloud.digitalocean.com)
-2. Create a new Droplet:
-   - **Image**: Ubuntu 22.04 LTS
-   - **Plan**: Basic (1 GB RAM / 1 CPU minimum)
-   - **Region**: Choose closest to your users
-   - **Authentication**: SSH Key (recommended)
-3. Note the Droplet's public IP address
+### 1. Set Up a Managed MongoDB Database
 
-### 2. Connect to the Droplet
+The App Platform does not run MongoDB locally, so you need a hosted database first.
 
-```bash
-ssh root@your_droplet_ip
-```
+1. In the DigitalOcean control panel, go to **Databases** → **Create Database Cluster**
+2. Choose **MongoDB**, select a plan and region
+3. Once created, go to the cluster's **Connection Details**
+4. Copy the **Connection String** (it looks like `mongodb+srv://...`)
 
-### 3. Install Node.js
+### 2. Push Your Code to GitHub
+
+App Platform deploys directly from a Git repository.
 
 ```bash
-curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
-sudo apt-get install -y nodejs
-node -v   # verify installation
+git add .
+git commit -m "ready for deployment"
+git push origin main
 ```
 
-### 4. Install and Start MongoDB
+### 3. Create a New App on App Platform
+
+1. In the DigitalOcean control panel, go to **App Platform** → **Create App**
+2. Choose **GitHub** as the source and authorize DigitalOcean to access your repositories
+3. Select your repository and the branch to deploy (e.g., `main`)
+4. DigitalOcean will detect Node.js automatically
+
+### 4. Configure the App
+
+On the **Configure your app** screen:
+
+- **Run Command**: `npm start`
+- **HTTP Port**: `5000` (or match your `PORT` environment variable)
+- **Instance Size**: Basic (512 MB RAM is sufficient to start)
+
+### 5. Set Environment Variables
+
+Still on the configuration screen, scroll to **Environment Variables** and add:
+
+| Key | Value |
+|-----|-------|
+| `JWT_SECRET` | A long, random secret string |
+| `NODE_ENV` | `production` |
+| `MONGODB_URI` | The connection string copied from Step 1 |
+
+> Make sure `MONGODB_URI` is marked as **Encrypted** to keep it secure.
+
+### 6. Connect the Database (Optional Shortcut)
+
+If you created a DigitalOcean Managed MongoDB database, you can also attach it directly:
+
+1. On the app configuration screen, go to **Add Resource** → **Database**
+2. Select your managed database cluster
+3. DigitalOcean will automatically inject the connection string as an environment variable
+
+### 7. Deploy
+
+1. Click **Next** through the remaining screens and review the plan cost
+2. Click **Create Resources** to start the first deployment
+3. App Platform will build and deploy the app — this takes a few minutes
+4. Once complete, your API will be available at the URL shown in the app dashboard (e.g., `https://your-app-name.ondigitalocean.app`)
+
+### 8. Verify the Deployment
 
 ```bash
-# Import MongoDB public key
-curl -fsSL https://www.mongodb.org/static/pgp/server-6.0.asc | sudo gpg -o /usr/share/keyrings/mongodb-server-6.0.gpg --dearmor
-
-# Add MongoDB repository
-echo "deb [ arch=amd64,arm64 signed-by=/usr/share/keyrings/mongodb-server-6.0.gpg ] https://repo.mongodb.org/apt/ubuntu jammy/mongodb-org/6.0 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-6.0.list
-
-# Install MongoDB
-sudo apt-get update
-sudo apt-get install -y mongodb-org
-
-# Enable and start MongoDB
-sudo systemctl start mongod
-sudo systemctl enable mongod
-
-# Verify MongoDB is running
-sudo systemctl status mongod
+# Test a public endpoint
+curl https://your-app-name.ondigitalocean.app/items
 ```
 
-### 5. Clone the Repository
+You should receive a JSON response (empty array if no items exist yet).
 
-```bash
-cd /home
-git clone https://github.com/habibAbdelgaber/se_project_express.git
-cd se_project_express
-npm install
-```
+### 9. Redeploy After Changes
 
-### 6. Set Environment Variables
-
-Create a `.env` file in the project root:
-
-```bash
-nano .env
-```
-
-Add the following:
-
-```
-PORT=3000
-JWT_SECRET=your_strong_secret_key_here
-NODE_ENV=production
-```
-
-Save and close (`Ctrl+X`, then `Y`, then `Enter`).
-
-### 7. Install PM2 (Process Manager)
-
-PM2 keeps the server running and restarts it automatically on crash or reboot:
-
-```bash
-sudo npm install -g pm2
-
-# Start the application with PM2
-pm2 start app.js --name wtwr-api
-
-# Save the PM2 process list so it restarts on reboot
-pm2 save
-pm2 startup
-```
-
-Run the command that `pm2 startup` outputs to enable auto-start on boot.
-
-### 8. Install and Configure Nginx (Reverse Proxy)
-
-```bash
-sudo apt-get install -y nginx
-```
-
-Create an Nginx server block:
-
-```bash
-sudo nano /etc/nginx/sites-available/wtwr
-```
-
-Paste the following (replace `your_domain_or_ip` with your actual domain or IP):
-
-```nginx
-server {
-    listen 80;
-    server_name your_domain_or_ip;
-
-    location / {
-        proxy_pass http://localhost:3000;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection 'upgrade';
-        proxy_set_header Host $host;
-        proxy_cache_bypass $http_upgrade;
-    }
-}
-```
-
-Enable the configuration and restart Nginx:
-
-```bash
-sudo ln -s /etc/nginx/sites-available/wtwr /etc/nginx/sites-enabled/
-sudo nginx -t          # test config
-sudo systemctl restart nginx
-```
-
-### 9. Configure the Firewall
-
-```bash
-sudo ufw allow OpenSSH
-sudo ufw allow 'Nginx Full'
-sudo ufw enable
-sudo ufw status
-```
-
-### 10. Set Up SSL with Let's Encrypt (HTTPS)
-
-```bash
-sudo apt-get install -y certbot python3-certbot-nginx
-
-# Replace your_domain.com with your actual domain name
-sudo certbot --nginx -d your_domain.com
-
-# Certbot will auto-renew — verify the timer is active
-sudo systemctl status certbot.timer
-```
-
-### 11. Verify Deployment
-
-```bash
-# Check the app is running
-pm2 status
-
-# Check logs
-pm2 logs wtwr-api
-
-# Test the API
-curl https://your_domain.com/items
-```
-
----
-
-## Useful PM2 Commands
-
-```bash
-pm2 status          # View running processes
-pm2 logs wtwr-api   # View application logs
-pm2 restart wtwr-api  # Restart the application
-pm2 stop wtwr-api   # Stop the application
-pm2 delete wtwr-api # Remove from PM2
-```
+Every time you push to the connected branch, App Platform automatically triggers a new deployment. You can also trigger one manually from the **Deployments** tab in the app dashboard.
 
 ---
 
@@ -291,5 +194,3 @@ pm2 delete wtwr-api # Remove from PM2
 - **celebrate** + **Joi** + **validator** — request validation
 - **winston** + **express-winston** — logging
 - **cors** — Cross-Origin Resource Sharing
-- **PM2** — production process manager
-- **Nginx** — reverse proxy and SSL termination
