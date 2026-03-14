@@ -21,4 +21,5 @@ node_modules
 .replit.nix
 *.nix
 .replit.md
+replit.md
 .replit
