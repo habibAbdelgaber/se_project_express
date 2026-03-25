@@ -91,7 +91,7 @@ JWT (JSON Web Token) is used for authentication:
 [WTWR API](https://api.wtwr.pymastery.com)
 
 # Frontend repository
-[Project Repo](https://github.com/habibAbdelgaber/se_project_react.git)
+[Project Repo](https://wtw.pymastery.com)
 
 # WTWR project pitch video
-[Check out](https://drive.google.com/file/d/1AukDqAj700N4-EF4TZeN9Sw-LPhDkYWa/view?usp=sharing)
+Find out more about the process on this video [Check out](https://drive.google.com/file/d/1AukDqAj700N4-EF4TZeN9Sw-LPhDkYWa/view?usp=sharing)
