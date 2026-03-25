@@ -5,8 +5,6 @@ const { errors } = require('celebrate');
 const routes = require('./routes');
 const errorHandler = require('./middlewares/error-handler');
 const { requestLogger, errorLogger } = require('./middlewares/logger');
-const { createUser, login } = require('./controllers/users');
-const { validateUserBody, validateLogin } = require('./middlewares/validation');
 
 const app = express();
 const {
@@ -23,9 +21,6 @@ mongoose.connect(MONGO_URI)
   .catch((err) => console.error('MongoDB connection error:', err));
 
 app.use(requestLogger);
-
-app.post('/signup', validateUserBody, createUser);
-app.post('/signin', validateLogin, login);
 
 app.use(routes);
 
